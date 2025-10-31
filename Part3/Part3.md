@@ -14,7 +14,8 @@ Connections:
 - `PB1 -> IX0.0`
 - `PB2 -> IX0.1`
 - `LED -> QX0.0 NO`
-![circ](test_circuit.jpg)
+\
+![circ](test_circuit.jpg)\
 
 In the editor I defined 3 variables for my inputs and outputs:
 
@@ -24,8 +25,8 @@ In the editor I defined 3 variables for my inputs and outputs:
 | PB2  | BOOL | %IX0.1   |
 | LED  | BOOL | %QX0.0   |
 
-Then I built a simple program with `PB1 & PB2` connected to an SR Latch (`PB1` being set, and `PB2` being reset) with the output connected to the `LED`.
-![test](test_program.png)
+Then I built a simple program with `PB1 & PB2` connected to an SR Latch (`PB1` being set, and `PB2` being reset) with the output connected to the `LED`.\
+![test](test_program.png)\
 After uploading this to the `PLC` everything worked as intended.
 
 ### Issues
@@ -44,15 +45,17 @@ This means that when the relay is switched by the SR latch output `NO` gets conn
 
 ## Setting up my circuit with the `PLC`
 
-I decided to completely rewire my circuit from scratch so it would conform nicely with the `PLC`s form factor. The main issue was that the output and input sides of the `PLC` are relatively far apart, and instead of just wiring a bunch of long jumper cables from the output side (which I didn't have enough of anyway) I split my circuit onto two breadboards. One breadboard would house input components and the other output.
-![maincirc](main_circuit.jpg)
-Connections:
+I decided to completely rewire my circuit from scratch so it would conform nicely with the `PLC`s form factor. The main issue was that the output and input sides of the `PLC` are relatively far apart, and instead of just wiring a bunch of long jumper cables from the output side (which I didn't have enough of anyway) I split my circuit onto two breadboards. One breadboard would house input components and the other output.\
+![maincirc](main_circuit.jpg)\
+Connections:\
 Input:
 
 - `Start_Stop` -> `IX0.2`
 - `Temp_Up` -> `IX0.0`
 - `Temp_Down` -> `IX0.1`
+
 Output:
+
 - `Status_Lamp` -> `QX0.7`
 - `Temp_Display` -> `QX0.6 - QX0.1`
 
@@ -70,7 +73,7 @@ Included variables:
 | Out_Status_LED | BOOL | %QX0.7   |               |
 | Heating_On     | BOOL |          | FALSE         |
 
-![fbd](fbd_on_off.png)
+![fbd](fbd_on_off.png)\
 This block functions as a toggle for `Heating_On`. When an input signal is received from the push button, the value is passed to a `R_TRIG` block which generates a single pulse when a rising edge is detected (without this block `Heating_On` would be unpredictably recursively set true/false as long as the button is held). After that the signal is passed to an `XOR` block, which is also connected to the value of `Heating_On`. Each button press toggles the state: FALSE becomes TRUE, TRUE becomes FALSE. `Heating_On` also stored its values in `Out_Status_LED`.
 ***NOTE: I could of just used `Out_Status_LED` as an output and a state variable for the other blocks that rely on its value. However I figured it would be cleaner to distinguish between the output variable and the state variable.***
 
@@ -93,7 +96,7 @@ Included variables
 | MAX_TEMP_SETTING | CONST INT |          | 10            |
 | Temp_Setting     | INT       |          | 0             |
 
-![fbd](fbd_temp_control.png)
+![fbd](fbd_temp_control.png)\
 This block is responsible for handling the increment/decrement of the temperature setting. At the heart is a `CTUD` (Count Up/Down) block, with the following inputs/outputs utilised:
 
 | Name | Type | Direction | Description                                         |
@@ -139,8 +142,8 @@ When trying to create an array in the editor it asked me to define the dimension
 finally `0..10` was correct, which seemed completely nonsensical to me.
 After that I was hoping it would be pretty straight forward to interface with it, but dropping a variable block for it gave me just a single output. I don't think there is a block for accessing an array by address, at-least I didn't find one. I'm pretty sure arrays were primarily intended to be used in the structured text language and it has been grafted on as an afterthought into the visual languages... but I could be completely wrong.
 
-I also experimented with `SEL` and `MUX` blocks but in the end I went with this stupid simple, ridiculously verbose approach.
-![fbd](fbd_display_setting.png)
+I also experimented with `SEL` and `MUX` blocks but in the end I went with this stupid simple, ridiculously verbose approach.\
+![fbd](fbd_display_setting.png)\
 Each block simply checks if `Temp_Setting` is equal to that blocks corresponding setting, then if `!Heating_On` the display LED s that represent that setting are lit up.
 
 #### Performed Tests
@@ -167,8 +170,8 @@ A better approach would be to have each LED be set when `Temp_Setting` is either
 ... etc
 ```
 
-***NOTE: Also when trying to debug the above `FBD` I realised you can connect an input to multiple outputs. The feature was just a bit weird to find, as the circle you needed to click would only show itself with the right finesse (kinda jank).***
-![fbd](fbd_display_setting_fixed.png)
+***NOTE: Also when trying to debug the above `FBD` I realised you can connect an input to multiple outputs. The feature was just a bit weird to find, as the circle you needed to click would only show itself with the right finesse (kinda jank).***\
+![fbd](fbd_display_setting_fixed.png)\
 Here's the improved revision, free of data races. I could further improve this by using a `GE` and `LE` block and replace the `OR` with an `AND` for the `LED`s with 3 `EQ` blocks. However this is how I made it and I'm not going through the effort of rewiring it for the sake of one less block per the inner `LED`s.
 
 #### Further Testing
@@ -189,7 +192,7 @@ Included variables:
 | Element_On  | BOOL |          | FALSE         |
 | Temperature | REAL |          |               |
 
-![fbd](fbd_simulate_temp.png)
+![fbd](fbd_simulate_temp.png)\
 Since I don't have access to a boiler I am going to make a simple simulation (I am not going to implement newtons equations in `FBD`).
 The simulation consists of a timer that ticks every 200 milliseconds and either increases or decreases a counter whether the element is on or not. The output is then multiplied by `0.5` (add 0.5 degrees every tick) and then `21.0` gets added (room temperature) before being stored in `Temperature`.
 
@@ -208,7 +211,7 @@ The LED display is not always going to display the temperature setting, when the
 | ------------- | ---- | -------- | ------------- |
 | Display_Index | INT  |          | 0             |
 
-![fbd](fbd_display_setting_updated.png)
+![fbd](fbd_display_setting_updated.png)\
 I ran the same tests from the last iteration and everything worked as expected.
 
 #### Setting the Display Index
@@ -223,7 +226,7 @@ Included Variables:
 | Display_Index    | INT  |          |               |
 | MAX_TEMP_SETTING | INT  |          | 10            |
 
-![fbd](fbd_display_index.png)
+![fbd](fbd_display_index.png)\
 This block is responsible for setting `Display_Index` across both modes (set and heating). It uses move blocks with execution control which enables me to avoid a data race against the two instances of `Display_Index`. This works because on `MOVE` when `EN` is `FALSE`, the blocks after it are not executed.
 
 When in set mode (`!Heating_On`), the `MOVE` block which takes `Temp_Setting` as input is enabled, the other disabled.
@@ -258,7 +261,7 @@ Included variables:
 | Temperature  | REAL |          |               |
 | Element_On   | BOOL |          |               |
 
-![fbd](PID_control_loop.png)
+![fbd](PID_control_loop.png)\
 Here's my control loop; nothing too special. The Set-Point (`SP`) is calculated from the current `Temp_Setting` multiplied by 10 with an addition of 80. The Process-Variable (`PV`) is just the temperature. The `PID` cycles every `20ms` with:
 
 - `KP (P) = -0.5` | `XOUT` was a negative value when the device needed to be heating, so I simply flipped it from positive to negative. I also chose a small value so it stays closer to `0`.
@@ -303,7 +306,7 @@ Included variables:
 | `Servo_Freq`          | REAL |                                            | 50.0Hz        |
 | `Servo_Angle`         | REAL |                                            | 0.0           |
 
-![fbd](fbd_servo_pwm.png)
+![fbd](fbd_servo_pwm.png)\
 Servo motors are controlled through a `PWM` (Pulse-Width-Modulator). A `PWM` outputs a pulse of a defined length (in ms) during each "`PWM` period"; the servo will interpret the length of this pulse as the target angle. I am using the Tower Pro `MG90S` micro-servo that has the following dimensions for the `PWM` signal it expects:
 [Datasheet](https://components101.com/motors/mg90s-metal-gear-servo-motor)
 
@@ -336,8 +339,8 @@ The pulse width for my servo is between `1.0-2.0`, so ($A/180 + 1$) gets the wid
 
 #### Testing and Debugging
 
-To test the servo I set up this simple block to snap the angle between 0 and 90 degrees.
-![fbd](fbd_servo_test.png)
+To test the servo I set up this simple block to snap the angle between 0 and 90 degrees.\
+![fbd](fbd_servo_test.png)\
 Before uploading my code to the Pico I made sure that the `PWM` was outputting `TRUE` with the values I was feeding to it. Alas it was not.
 I changed `Out_Servo_PWM_Chann` to 1 which got the `PWM` to output `TRUE` and I moved on to the Pico Itself.
 ***NOTE: I had to reverse the order of digital output pins in the `I/O` config for them to match the locations set for the `LED`s.***
@@ -380,7 +383,7 @@ Include Variables:
 | Heating_On  | BOOL |          |               |
 | Servo_Angle | REAL |          | 0.0           |
 
-![fbd](fbd_valve_actuation.png)
+![fbd](fbd_valve_actuation.png)\
 This block adds/subtracts 1% (1.8 deg) from the current value of `Servo_Angle`, selects which one to use with a `SEL` block, based on the value of `Heating_On`, limits the value between 0-80% (0-144 deg) and then a timer that ticks every 100 ms triggers a `MOVE` block to store the modified value back into `Servo_Angle`.
 This meets the above requirements I laid out.
 
@@ -402,12 +405,12 @@ Included Variables:
 | Emergency_Stop    | BOOL |          | FALSE         |
 | Global_Enable     | BOOL |          | TRUE          |
 
-![fbd](fbd_emergency_stop.png)
+![fbd](fbd_emergency_stop.png)\
 I copied the same toggle mechanism, but used it with the new push button and the `Emergency_Stop` variable. I also added a `Global_Enable` which just acts as a short-hand for `!Emergency_Stop`.
-After that I modified two program blocks to take into account the new emergency state. Specifically `Heating_On` toggle block, and the `Display_Index` block.
-![fbd](fbd_toggle_emergency.png)
-I added an AND gate and connected to it `Global_Enable`, so when `Emergency_Stop = TRUE` it will force `Heating_On = FALSE`.
-![fbd](fbd_display_index_emergency.png)
+After that I modified two program blocks to take into account the new emergency state. Specifically `Heating_On` toggle block, and the `Display_Index` block.\
+![fbd](fbd_toggle_emergency.png)\
+I added an AND gate and connected to it `Global_Enable`, so when `Emergency_Stop = TRUE` it will force `Heating_On = FALSE`.\
+![fbd](fbd_display_index_emergency.png)\
 I want it to be obvious when the device's function has been overridden by an emergency stop. To achieve this I added a third branch to the display index block, that will load -1 into the index when `Emergency_Stop = TRUE` and effectively disable the display. The valve will also close automatically when `Heating_On = FALSE`.
 ***NOTE: I didn't incorporate `Global_Enable` into the MOVE block responsible for setting the display index when the device is in HEATING mode, because `Heating_On` will always be FALSE when `Emergency_Stop = TRUE`***
 
@@ -470,18 +473,18 @@ dmesg | grep tty
 Which confirmed it was connected to `/dev/ttyS0` with the correct baud rate. Also I added my user to the `dialout` group to give it permissions to read and write to the port.
 Since I want to connect to the server on my host computer, another thing I did was change the VM network interface to a bridged adaptor.
 
-With everything configured I started the runtime:
-![runtime](runtime_vm.png)
-I should now be able to connect to it by going to the address it provided.
-![runtime](openplc_webserver.png)
+With everything configured I started the runtime:\
+![runtime](runtime_vm.png)\
+I should now be able to connect to it by going to the address it provided.\
+![runtime](openplc_webserver.png)\
 Success!
 
 ## Setting up a slave device
 
-In the editor I went to the transfer dialogue and enabled the Modbus RTU serial communication protocol, configured as follows:
-![runtime](serial_config.png)
-In the OpenPLC web interface, I navigated to the 'Slave Devices' section and added a new device with the following configuration.
-![runtime](slave_device.png)
+In the editor I went to the transfer dialogue and enabled the Modbus RTU serial communication protocol, configured as follows:\
+![runtime](serial_config.png)\
+In the OpenPLC web interface, I navigated to the 'Slave Devices' section and added a new device with the following configuration.\
+![runtime](slave_device.png)\
 I specifically changed the following values:
 
 - COM Port: `/dev/ttyS0`
@@ -492,8 +495,8 @@ I specifically changed the following values:
 ## Uploading a program
 
 When uploading my PLC program to the runtime it wouldn't compile when using the `PWM_CONTROLLER` block, probably because it is from the Arduino function-block library, and is non-standard. I couldn't figure out how to include the non-standard blocks, so in a future iteration I will probably just make my own `PWM` out of standard blocks.
-I also changed the input/output addresses in my program to match the new addressing when communicating to the PLC over serial. Address `%QX0.1` became `%QX100.1` because in OpenPLC's memory mapping, device addresses typically start at offset 100 to avoid conflicts with local I/O. Running the program in the runtime, reports that the "PicoPLC" Modbus device has been successfully connected, and I can monitor the input/outputs:
-![runtime](runtime_monitor.png)
+I also changed the input/output addresses in my program to match the new addressing when communicating to the PLC over serial. Address `%QX0.1` became `%QX100.1` because in OpenPLC's memory mapping, device addresses typically start at offset 100 to avoid conflicts with local I/O. Running the program in the runtime, reports that the "PicoPLC" Modbus device has been successfully connected, and I can monitor the input/outputs:\
+![runtime](runtime_monitor.png)\
 However these values don't update as I use the PLC, and the servo is still working, implying that the local program is overriding the communications from the runtime. Also when trying to write to values I get the following error:
 
 ```

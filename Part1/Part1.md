@@ -17,7 +17,7 @@ Truth-table for SR-Latch
 | 1   | 0   | 1     | 0     |
 | 1   | 1   | 0     | 0     |
 
-Here is the logic of my SR-Latch. I used a NOR gate SR latch because it is set when the inputs go from low to high which fits nicely with buttons, and saves two NOT gates. When `Start_Heating` is pressed the bottom NOR gate output goes low, causing the top gate to output high which keeps the output of the bottom gate low creating a latch. The same mechanism happens when `Stop_Heating` is pressed but in the opposite direction.
+Here is the logic of my SR-Latch. I used a NOR gate SR latch because it is set when the inputs go from low to high which fits nicely with buttons, and saves two NOT gates. When `Start_Heating` is pressed the bottom NOR gate output goes low, causing the top gate to output high which keeps the output of the bottom gate low creating a latch. The same mechanism happens when `Stop_Heating` is pressed but in the opposite direction.\
 
 ![tflipflop](SR-Latch.png)
 
@@ -43,7 +43,7 @@ Using that information I wired the chip in Logisim as follows:
 
 - I connected the load to the SR-Latch's output signal and all the inputs to ground. That way when `Stop_Heating` has been pressed 0 is loaded to all bits.
 - I placed a button to clear the counter, for testing purposes. Note the controller design doesn't include a reset temp button, it could be a useful addition.
-- For `Increase_Temp` and `Decrease_Temp` I inverted the buttons so they output high passively and low when pressed.
+- For `Increase_Temp` and `Decrease_Temp` I inverted the buttons so they output high passively and low when pressed.\
 
 ![cnt](Counter.png)
 
@@ -77,9 +77,9 @@ I came up with the following address table:
 | 10   | 110000 | 170C |
 | 11   | 100000 | 180C |
 
-Converting the binary data to hexadecimal I got the following address table in Logisim:<br>
-![addr](AddressTable.png)<br>
-Testing this address table produced the expected output and the `LED`s lit up in the correct pattern as the counter was incremented.
+Converting the binary data to hexadecimal I got the following address table in Logisim:\
+![addr](AddressTable.png)\
+Testing this address table produced the expected output and the `LED`s lit up in the correct pattern as the counter was incremented.\
 ![rom](ROM.png)
 
 # Handling overflow
@@ -91,5 +91,5 @@ Note: Decrementing the counter below zero won't set the temperature to high, it 
 
 # Finishing Up
 
-Now that all the controls are implemented I moved the controls and display to an easily accessed location.
+Now that all the controls are implemented I moved the controls and display to an easily accessed location.\
 ![controller](Controller.png)

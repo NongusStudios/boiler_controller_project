@@ -100,8 +100,8 @@ While interrupts are great for more complex controllers, simplicity will be pref
 
 ### Implementation
 
-Before writing any code I first setup wired some buttons to the Pico.
-![[wiring-buttons.jpg]]
+Before writing any code I first setup wired some buttons to the Pico.\
+![wire](wiring-buttons.jpg)\
 Connections:
 
 - `GP16` - green status led.
@@ -293,7 +293,7 @@ To the display the temperature I'll need six `LED`s each connected to a differen
 
 ### Implementation
 
-![leds](wiring-leds.jpg)
+![leds](wiring-leds.jpg)\
 
 Connections:
 
@@ -365,7 +365,7 @@ When the heating is turned on, a servo motor needs to slowly open a valve to let
 
 ### Implementation
 
-![servo](wiring-servo.jpg)
+![servo](wiring-servo.jpg)\
 Connections:
 
 - `GP20`: Servo data pin

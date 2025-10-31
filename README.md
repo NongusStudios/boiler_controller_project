@@ -1,4 +1,5 @@
 # Summary
+
 The documentation provided in this repository is my work submitted for the Automation and Embedded Systems course I took at EIT.
 Each part is a different deliverable.<br>
 The case-study was on a controller for an industrial water boiler, where we had to implement:
@@ -14,4 +15,10 @@ We didn't actually have access to a boiler, so I simulated temperature to test t
 - Using real world physics equations in part 2.
 - Using simple linear equation in part 3, because implementing real world physics in FBD is silly.
 
-I had an idea to modify a cheap electric kettle, but ran out of time and it was outside of the assessments scope. 
+I had an idea to modify a cheap electric kettle, but ran out of time and it was outside of the assessments scope.
+
+## Documentation
+
+- [Part 1](Part1/Part1.pdf)
+- [Part 2](Part2/Part2.pdf)
+- [Part 3](Part3/Part3.pdf)

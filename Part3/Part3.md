@@ -17,6 +17,7 @@ In the editor I defined 3 variables for my inputs and outputs:
 | PB1  | BOOL | %IX0.0   |
 | PB2  | BOOL | %IX0.1   |
 | LED  | BOOL | %QX0.0   |
+
 Then I built a simple program with `PB1 & PB2` connected to an SR Latch (`PB1` being set, and `PB2` being reset) with the output connected to the `LED`.
 ![[test_program.png]]
 After uploading this to the `PLC` everything worked as intended.
@@ -50,6 +51,7 @@ Included variables:
 | In_Start_Stop  | BOOL | %IX0.2   |               |
 | Out_Status_LED | BOOL | %QX0.7   |               |
 | Heating_On     | BOOL |          | FALSE         |
+
 ![[fbd_on_off.png]]
 This block functions as a toggle for `Heating_On`. When an input signal is received from the push button, the value is passed to a `R_TRIG` block which generates a single pulse when a rising edge is detected (without this block `Heating_On` would be unpredictably recursively set true/false as long as the button is held). After that the signal is passed to an `XOR` block, which is also connected to the value of `Heating_On`. Each button press toggles the state: FALSE becomes TRUE, TRUE becomes FALSE. `Heating_On` also stored its values in `Out_Status_LED`.
 ***NOTE: I could of just used `Out_Status_LED` as an output and a state variable for the other blocks that rely on its value. However I figured it would be cleaner to distinguish between the output variable and the state variable.***
@@ -59,6 +61,7 @@ This block functions as a toggle for `Heating_On`. When an input signal is recei
 | --------------------------------------------------- | ---------------------------- | ------------------ |
 | Set `In_Start_Stop` TRUE when `Heating_On` is FALSE | `Heating_On` is set to TRUE  | Same as expected   |
 | Set `In_Start_Stop` TRUE when `Heating_On` is TRUE  | `Heating_On` is set to FALSE | Same as expected   |
+
 ### Temperature Setting Controls
 Included variables
 
@@ -69,6 +72,7 @@ Included variables
 | Heating_On       | BOOL      |          | FALSE         |
 | MAX_TEMP_SETTING | CONST INT |          | 10            |
 | Temp_Setting     | INT       |          | 0             |
+
 ![[fbd_temp_control.png]]
 This block is responsible for handling the increment/decrement of the temperature setting. At the heart is a `CTUD` (Count Up/Down) block, with the following inputs/outputs utilised:
 
@@ -80,6 +84,7 @@ This block is responsible for handling the increment/decrement of the temperatur
 | CV   | INT  | Output    | The current value of the counter                    |
 | QU   | BOOL | Output    | When `CV = PV` outputs TRUE                         |
 | QD   | BOOL | Output    | When `CV <= 0` outputs TRUE                         |
+
 `In_Temp_Up/Down` and `!Heating_On` are both fed into an `AND` gate, this means that the signal to increment/decrement the counter will only be passed through when the device is not heating. This signal is then put through another `AND` gate along with `!QU / !QD` respectively, this means that the counter will not count above `PV` (which is set to `MAX_TEMP_SETTING`) and won't count bellow 0 (the minimum temperature setting).
 The output (`CV`) is then stored in `Temp_Setting`.
 #### Performed Tests
@@ -91,6 +96,7 @@ The output (`CV`) is then stored in `Temp_Setting`.
 | `In_Temp_Down` set TRUE while `!Heating_On` and `CV > 0`               | `CTUD` decrements `CV` by 1              | Same as expected   |
 | `In_Temp_Down` set TRUE while `Heating_On`                             | `CTUD` does not receive a signal to `CD` | Same as expected   |
 | `In_Temp_Down` set TRUE while `!Heating_On` and `CV <= 0`              | `CTUD` does not receive a signal to `CD` | Same as expected   |
+
 ### Temperature Setting Display
 Included Variables:
 
@@ -99,6 +105,7 @@ Included Variables:
 | Out_Display_LED[0-5] | BOOL | %QX0.[6-1] |               |
 | Heating_On           | BOOL |            | FALSE         |
 | Temp_Setting         | INT  |            | 0             |
+
 At first I tried using the Array type to make a map of outputs that would correspond to the correct LED/s using `Temp_Setting` as an address. Documentation for this editor is sorely lacking, and I just ended up hitting my head into a brick wall; my first hurdle was defining an array in the first place.
 When trying to create an array in the editor it asked me to define the dimensions:
 - "`10` isn't a valid array dimension!"
@@ -116,6 +123,7 @@ Each block simply checks if `Temp_Setting` is equal to that blocks corresponding
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Increasing `Temp_Setting` from 0-10 while `!Heating_On` | As `Temp_Setting` increases the corresponding block should output TRUE to the correct `Out_Display_LEDx`s | While the correct connection goes high the actual values of the LED/s don't reflect this. |
 | Increasing `Temp_Setting` from 0-10 while `Heating_On`  | No matter what `Temp_Setting` is, FALSE should be passed to the corresponding `Out_Display_LEDx`s         | While the correct connection goes high the actual values of the LED/s don't reflect this. |
+
 #### Debugging
 So whats going on here? ...
 Lets think; when `Temp_Setting = 3` the program is trying to set `Out_Display_LED1/2` to TRUE, while simultaneously `LED1/2` is being set FALSE on the blocks above and below. Now that's what I'd call a data race, so no wonder the values aren't matching up.
@@ -138,6 +146,7 @@ Here's the improved revision, free of data races. I could further improve this b
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------ |
 | Increasing `Temp_Setting` from 0-10 while `!Heating_On` | As `Temp_Setting` increases the corresponding block should output TRUE to the correct `Out_Display_LEDx`/s | Same as expected   |
 | Increasing `Temp_Setting` from 0-10 while `Heating_On`  | No matter what `Temp_Setting` is, FALSE should be passed to the corresponding `Out_Display_LEDx`/s         | Same as expected   |
+
 Finally!
 ### Simple temperature simulation
 Included variables:
@@ -146,6 +155,7 @@ Included variables:
 | ----------- | ---- | -------- | ------------- |
 | Element_On  | BOOL |          | FALSE         |
 | Temperature | REAL |          |               |
+
 ![[fbd_simulate_temp.png]]
 Since I don't have access to a boiler I am going to make a simple simulation (I am not going to implement newtons equations in `FBD`).
 The simulation consists of a timer that ticks every 200 milliseconds and either increases or decreases a counter whether the element is on or not. The output is then multiplied by `0.5` (add 0.5 degrees every tick) and then `21.0` gets added (room temperature) before being stored in `Temperature`. 
@@ -154,12 +164,14 @@ The simulation consists of a timer that ticks every 200 milliseconds and either 
 | ---------------------------------- | --------------------------------------------------------------------------- | ------------------ |
 | Observe counter when `Heating_On`  | `Temperature` should increase by `0.5` every tick until it maxes out at 521 | Same as expected   |
 | Observe counter when `!Heating_On` | `Temperature` should decrease by `0.5` every tick until it reaches `21.0`   | Same as expected   |
+
 ### Refactoring 6 LED display
 The LED display is not always going to display the temperature setting, when the device is in heating mode, it will instead show the recorded temperature. To address this I created a variable called `Display_Index` and hooked it up to the display inputs instead of `Temp_Setting`. Also now that the display will be used in both modes, I removed the `AND !Heating_On` condition on each `LED`.
 
 | Name          | Type | Location | Initial Value |
 | ------------- | ---- | -------- | ------------- |
 | Display_Index | INT  |          | 0             |
+
 ![[fbd_display_setting_updated.png]]
 I ran the same tests from the last iteration and everything worked as expected.
 #### Setting the Display Index
@@ -172,6 +184,7 @@ Included Variables:
 | Temperature      | REAL |          |               |
 | Display_Index    | INT  |          |               |
 | MAX_TEMP_SETTING | INT  |          | 10            |
+
 ![[fbd_display_index.png]]
 This block is responsible for setting `Display_Index` across both modes (set and heating). It uses move blocks with execution control which enables me to avoid a data race against the two instances of `Display_Index`. This works because on `MOVE` when `EN` is `FALSE`, the blocks after it are not executed.
 
@@ -192,6 +205,7 @@ Next I convert the result back into an `INT`, my thought was that a `REAL_TO_INT
 | ---------------------------------------------------- | --------------------------------------------------------- | ------------------ |
 | Increase/decrease `Temp_Setting` while `!Heating_On` | `Display_Index` is set to match `Temp_Setting`            | Same as expected   |
 | Turn heating on to let the temperature increase.     | `Temperature` is mapped to `Display_Index` with rounding. | Same as expected   |
+
 ### `PID` control loop
 Included variables:
 
@@ -201,6 +215,7 @@ Included variables:
 | Heating_On   | BOOL |          |               |
 | Temperature  | REAL |          |               |
 | Element_On   | BOOL |          |               |
+
 ![[PID_control_loop.png]]
 Here's my control loop; nothing too special. The Set-Point (`SP`) is calculated from the current `Temp_Setting` multiplied by 10 with an addition of 80. The Process-Variable (`PV`) is just the temperature. The `PID` cycles every `20ms` with:
 - `KP (P) = -0.5` | `XOUT` was a negative value when the device needed to be heating, so I simply flipped it from positive to negative. I also chose a small value so it stays closer to `0`.
@@ -212,6 +227,7 @@ So instead I landed on my work around using a high integral value.
 | Test                      | Expected Behavior                                                                                                                        | Observed Behaviour |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | Start heating and observe | The `PID` should turn `Element_On` consistently until it reaches the desired set-point and then stabilise around the set-point `/- 0.2C` | Same as expected   |
+
 #### Further Tuning
 Later I revisited the `PID` to see if I could properly address wind-up. I reconnected `AUTO` to `Heating_On` and significantly reduced `TR (I)` value, which resolved the startup issue.
 I spent an afternoon playing around with different values, but wasn't able to tune it quite right, and gave up in the end.
@@ -237,6 +253,7 @@ Included variables:
 | `Out_Servo_PWM_Chann` | SINT | points to `%QW0` but not directly attached | 0             |
 | `Servo_Freq`          | REAL |                                            | 50.0Hz        |
 | `Servo_Angle`         | REAL |                                            | 0.0           |
+
 ![[fbd_servo_pwm.png]]
 Servo motors are controlled through a `PWM` (Pulse-Width-Modulator). A `PWM` outputs a pulse of a defined length (in ms) during each "`PWM` period"; the servo will interpret the length of this pulse as the target angle. I am using the Tower Pro `MG90S` micro-servo that has the following dimensions for the `PWM` signal it expects:
 [Datasheet](https://components101.com/motors/mg90s-metal-gear-servo-motor)
@@ -247,6 +264,7 @@ Servo motors are controlled through a `PWM` (Pulse-Width-Modulator). A `PWM` out
 | `PWM` Perioid                  | `50Hz` (`20ms`) |
 | Signal Voltage                 | `~5V`           |
 | Angle range                    | 0-180 degrees   |
+
 ***NOTE: The voltage for `GP I/O` pins on the Raspberry Pico is only `3.3V` but I was able to get the servo to read the signal on the last revision so this shouldn't be an issue.***
 
 I used the `PWM_CONTROLLER` block (from the "Arduino" library but it also should work with the `RP`), it has the following inputs/outputs:
@@ -257,6 +275,7 @@ I used the `PWM_CONTROLLER` block (from the "Arduino" library but it also should
 | FREQ    | IN        | REAL | The `PWM` period in Hertz                                                                        |
 | DUTY    | IN        | REAL | The Pulse-width expressed as a percentage of the period.                                         |
 | SUCCESS | OUT       | BOOL | TRUE when `PWM` is working successfully                                                          |
+
 With the servos spec in mind the formula for converting an angle (degrees) to the correct pulse width percentage should be:
 $\Huge D = (A/180 + 1) / (1000/F) * 100.0$
 Where:
@@ -289,6 +308,7 @@ Now this issue could be because the servo's desired signal height is `~5V` and i
 | 0                 | 1.0              | 45                 |
 | 90                | 1.5              | 90                 |
 | 180               | 2.0              | 135                |
+
 It appears that the pulse-width range might actually be between 0.5-2.5 and the datasheet is nothing but lies!
 I adjusted the conversion from angle to pulse-width (%) to:
 $\Huge D = (A/90 + 0.5) / (1000/F) * 100.0$
@@ -303,6 +323,7 @@ Include Variables:
 | ----------- | ---- | -------- | ------------- |
 | Heating_On  | BOOL |          |               |
 | Servo_Angle | REAL |          | 0.0           |
+
 ![[fbd_valve_actuation.png]]
 This block adds/subtracts 1% (1.8 deg) from the current value of `Servo_Angle`, selects which one to use with a `SEL` block, based on the value of `Heating_On`, limits the value between 0-80% (0-144 deg) and then a timer that ticks every 100 ms triggers a `MOVE` block to store the modified value back into `Servo_Angle`.
 This meets the above requirements I laid out.
@@ -312,6 +333,7 @@ This meets the above requirements I laid out.
 | -------------------------------------------------- | --------------------------------------------------------------------------- | ------------------ |
 | Set `Heating_On = TRUE` and observe `Servo_Angle`  | `Servo_Angle` increases at 18 deg/s until reaching a maximum of 144 degrees | Same as expected   |
 | Set `Heating_On = FALSE` and observe `Servo_Angle` | `Servo_Angle` decreases at 18 deg/s until reaching a minimum of 0 degrees   | Same as expected   |
+
 ### Emergency Stop
 The final piece of the puzzle is an emergency stop button, which isn't necessary in the device's current prototype phase but will prove useful in future iterations where safety is critical. I started by adding a fourth push button with the following connected to `%QX0.3`.
 Included Variables:
@@ -321,6 +343,7 @@ Included Variables:
 | In_Emergency_Stop | BOOL | `%IX0.3` |               |
 | Emergency_Stop    | BOOL |          | FALSE         |
 | Global_Enable     | BOOL |          | TRUE          |
+
 ![[fbd_emergency_stop.png]]
 I copied the same toggle mechanism, but used it with the new push button and the `Emergency_Stop` variable. I also added a `Global_Enable` which just acts as a short-hand for `!Emergency_Stop`.
 After that I modified two program blocks to take into account the new emergency state. Specifically `Heating_On` toggle block, and the `Display_Index` block.
@@ -334,6 +357,7 @@ I want it to be obvious when the device's function has been overridden by an eme
 | ----------------------------------------- | ------------------------------------------------------- | ------------------ |
 | Activate `Emergency_Stop` in SET mode     | `Heating_On` will remain FALSE, and display is disabled | Same as expected   |
 | Activate `Emergency_Stop` in HEATING mode | `Heating_On` will switch FALSE, and display is disabled | Same as expected   |
+
 ## Circuit Diagram
 ![[circuit_diagram.png]]
 ### Final Hardware Tests

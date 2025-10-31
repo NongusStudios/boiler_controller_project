@@ -1,0 +1,23 @@
+{
+  "baud": "115200",
+  "board_type": "Raspberry Pico W",
+  "com_port": "/dev/ttyACM0",
+  "dns": "8.8.8.8",
+  "gateway": "192.168.1.1",
+  "ip": "192.168.1.195",
+  "last_modified": 1761445589.5494494,
+  "mac": "0xDE, 0xAD, 0xBE, 0xEF, 0xDE, 0xAD",
+  "mb_serial": true,
+  "mb_tcp": false,
+  "pwd": "password",
+  "serial_iface": "Serial",
+  "slaveid": "1",
+  "ssid": "",
+  "subnet": "255.255.255.0",
+  "tcp_iface": "WiFi",
+  "txpin": "-1",
+  "user_ain": "26, 27, 28",
+  "user_aout": "0,4,5",
+  "user_din": "6, 7, 8, 9, 10, 11, 12, 13",
+  "user_dout": "21, 20, 19, 18, 17, 16, 15, 14"
+}

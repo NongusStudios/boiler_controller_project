@@ -22,3 +22,4 @@ I had an idea to modify a cheap electric kettle, but ran out of time and it was 
 - [Part 1](Part1/Part1.md)
 - [Part 2](Part2/Part2.md)
 - [Part 3](Part3/Part3.md)
+- [Part 4](Part4/Part4.md)

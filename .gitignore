@@ -1,6 +1,7 @@
 *.o
 *.a
 *.so
-*/build
-*/__pycache__
 *.pdf
+build/
+plc_controller_*/
+__pycache__/
